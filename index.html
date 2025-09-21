@@ -1,282 +1,628 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ATM Simulation</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Interactive ATM Simulation</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: linear-gradient(to right, #ff7e5f, #feb47b);
+  :root{
+    --accent1:#ff7e5f;
+    --accent2:#feb47b;
+    --card:#fffdf6;
+    --atm-bg:#263238;
+    --screen-bg:#d7f0f7;
+    --muted:#9aa4a6;
+    --glass: rgba(255,255,255,0.08);
+  }
+  html,body{
+    height:100%;
+    margin:0;
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    color:#fff;
   }
 
-  /* Login Page */
-  #login-page {
-    background: #fff;
-    border-radius: 15px;
-    padding: 30px;
-    width: 400px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-    text-align: center;
+  /* Container centers the content */
+  .container{
+    min-height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:30px;
+    box-sizing:border-box;
   }
-  #login-page h1 { color: #ff7e5f; }
-  #login-page p { font-size: 16px; color: #333; }
-  #login-page input {
-    width: 80%;
-    padding: 10px;
-    margin: 15px 0;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 16px;
-  }
-  #login-page button {
-    padding: 12px 25px;
-    border: none;
-    border-radius: 8px;
-    background: #ff7e5f;
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-  }
-  #login-page button:hover { background: #feb47b; }
 
-  /* ATM Page */
-  #atm-page {
-    display: none;
-    width: 520px;
-    background: #455a64;
-    border-radius: 12px;
-    box-shadow: 0 5px 25px rgba(0,0,0,0.6);
-    padding: 20px;
-    position: relative;
+  /* Card wrapper */
+  .card {
+    width:100%;
+    max-width:1100px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.06));
+    border-radius:16px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.6);
+    display:flex;
+    gap:20px;
+    overflow:hidden;
+  }
+
+  /* Left: info & login */
+  .left {
+    flex:0 0 420px;
+    padding:28px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+    box-sizing:border-box;
+  }
+  .brand {
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .logo {
+    width:56px;
+    height:56px;
+    border-radius:12px;
+    background:linear-gradient(135deg,var(--accent1),var(--accent2));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:900;
+    font-size:20px;
+    color:white;
+    box-shadow:0 6px 18px rgba(0,0,0,0.4);
+  }
+  h1{ margin:0; font-size:18px; }
+  p.lead{ margin:0; color:var(--muted); font-size:14px; }
+
+  /* Info pages area */
+  .info {
+    background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
+    border-radius:10px;
+    padding:14px;
+    height:360px;
+    overflow:auto;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+    color:#e9f6f8;
+  }
+  .info h2{ margin-top:6px; color:var(--accent2); }
+  .info p{ color: #dbeff2; line-height:1.45; margin:10px 0; font-size:13.6px; }
+
+  .info .controls{
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    margin-top:8px;
+  }
+  .btn {
+    background:linear-gradient(90deg,var(--accent1),var(--accent2));
+    border:none;
+    color:white;
+    padding:10px 12px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:600;
+    box-shadow:0 8px 18px rgba(0,0,0,0.35);
+  }
+  .btn.ghost {
+    background:transparent;
+    border:1px solid rgba(255,255,255,0.08);
+    color:#fff;
+    box-shadow:none;
+  }
+  .footer-note{ font-size:12px; color:var(--muted); margin-top:6px; }
+
+  /* phone input area */
+  .phone-area {
+    display:flex;
+    gap:8px;
+    margin-top:6px;
+    align-items:center;
+  }
+  .phone-area input[type="text"]{
+    flex:1;
+    padding:10px 12px;
+    border-radius:8px;
+    border:none;
+    outline:none;
+    background:var(--card);
+    color:#0b2b2f;
+    font-weight:600;
+  }
+  .sms-box {
+    margin-top:8px;
+    font-size:13px;
+    color:#b6e6e9;
+    min-height:46px;
+  }
+
+  /* Right: ATM panel */
+  .right {
+    flex:1;
+    padding:28px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    box-sizing:border-box;
+  }
+
+  .atm {
+    background: linear-gradient(180deg,#37474f,#232f31);
+    border-radius:10px;
+    padding:18px;
+    display:flex;
+    gap:16px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.6);
+    align-items:flex-start;
+  }
+
+  /* Screen */
+  .screen-wrap {
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
   }
   .screen {
-    width: 80%;
-    height: 200px;
-    margin: auto;
-    background: #d7f0f7;
-    border: 3px solid #222;
-    border-radius: 6px;
-    text-align: center;
-    padding: 15px;
-    font-size: 18px;
-    font-weight: bold;
-    color: #004d40;
-    overflow-y: auto;
+    width:100%;
+    max-width:560px;
+    height:180px;
+    background:var(--screen-bg);
+    border-radius:8px;
+    border:3px solid #111;
+    color:#003a36;
+    padding:14px;
+    font-weight:700;
+    box-shadow: inset 0 -6px 20px rgba(0,0,0,0.05);
+    overflow:auto;
+    text-align:center;
+    line-height:1.4;
+    font-size:16px;
   }
+
+  /* Keypad & layout */
+  .keypad-area {
+    width:100%;
+    display:flex;
+    gap:16px;
+    align-items:flex-start;
+  }
+
   .side-buttons {
-    position: absolute;
-    top: 80px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+    width:110px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
   }
-  .left-buttons { left: 10px; }
-  .right-buttons { right: 10px; }
   .side-buttons button {
-    width: 120px;
-    height: 35px;
-    border-radius: 6px;
-    background: #ccc;
-    border: 1px solid #333;
-    cursor: pointer;
-    font-weight: bold;
+    background:var(--glass);
+    color:#fff;
+    border:1px solid rgba(255,255,255,0.03);
+    padding:10px 8px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:700;
   }
+  .side-buttons button:hover{ transform:translateX(4px); }
+
+  .middle {
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
+  }
+
   .card-slot, .cash-slot {
-    width: 180px;
-    height: 20px;
-    background: #222;
-    margin: 10px auto;
-    border-radius: 4px;
+    width:220px;
+    height:18px;
+    background:#111;
+    border-radius:6px;
+    margin:0 auto;
+    box-shadow: inset 0 -6px 12px rgba(255,255,255,0.02);
   }
+
   .keypad {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    width: 60%;
-    margin: 20px auto 0;
+    display:grid;
+    grid-template-columns:repeat(3,80px);
+    gap:10px;
+    justify-content:center;
   }
   .key {
-    padding: 15px;
-    background: #eee;
-    border: 2px solid #555;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 18px;
-    font-weight: bold;
-    text-align: center;
+    width:80px;
+    height:58px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#eceff1;
+    color:#1b2626;
+    border-radius:8px;
+    font-size:18px;
+    font-weight:800;
+    cursor:pointer;
+    border:2px solid rgba(0,0,0,0.2);
   }
-  .enter { background: #4CAF50; color: #fff; }
-  .cancel { background: #e53935; color: #fff; }
+  .key.enter { background:linear-gradient(90deg,#4CAF50,#2e7d32); color:#fff; }
+  .key.cancel { background:linear-gradient(90deg,#ef5350,#d32f2f); color:#fff; }
+
+  /* small utilities */
+  .small { font-size:13px; color:#cfecee; }
+  .muted { color:var(--muted); font-size:13px; }
+  .history-list { font-size:13px; text-align:left; color:#073535; }
+
+  /* responsive */
+  @media (max-width:980px){
+    .card{ flex-direction:column; }
+    .left{ max-width:none; width:100%;}
+    .right{ width:100%;}
+    .keypad{ grid-template-columns:repeat(3,64px); }
+    .key{ width:64px; height:52px; }
+  }
 </style>
 </head>
 <body>
+  <div class="container">
+    <div class="card" role="main" aria-label="ATM Simulation">
+      <!-- LEFT: Info + login -->
+      <div class="left" aria-hidden="false">
+        <div class="brand">
+          <div class="logo">ATM</div>
+          <div>
+            <h1>Interactive ATM Simulation</h1>
+            <p class="lead">Learn how ATMs work and practice common ATM tasks safely.</p>
+          </div>
+        </div>
 
-<!-- LOGIN PAGE -->
-<div id="login-page">
-  <h1>ATM Simulation</h1>
-  <p>Welcome! This simulation will teach you how to use an ATM.</p>
-  <p>Enter your phone number to receive your card number and PIN via simulated SMS.</p>
-  <input type="text" id="phone" placeholder="Enter phone number">
-  <br>
-  <button onclick="sendSMS()">Start Simulation</button>
-  <p id="message" style="color:green; font-weight:bold;"></p>
-</div>
+        <!-- Info pages (two pages of content) -->
+        <div class="info" id="infoPane">
+          <!-- dynamic content inserted here -->
+        </div>
 
-<!-- ATM PAGE -->
-<div id="atm-page">
-  <div class="screen" id="atm-screen">WELCOME<br>INSERT CARD</div>
+        <div class="info-controls" style="display:flex;gap:8px;align-items:center;justify-content:space-between;">
+          <div style="display:flex;gap:8px;">
+            <button class="btn ghost" id="prevInfo">Previous</button>
+            <button class="btn ghost" id="nextInfo">Next</button>
+          </div>
 
-  <!-- Side Buttons -->
-  <div class="side-buttons left-buttons">
-    <button onclick="showBalance()">💰 Balance</button>
-    <button onclick="withdraw()">💸 Withdraw</button>
-    <button onclick="deposit()">➕ Deposit</button>
-    <button onclick="setGoal()">🎯 Goal</button>
+          <!-- Phone input and start -->
+          <div style="width:100%;max-width:230px;display:flex;flex-direction:column;">
+            <label class="muted" style="margin-bottom:6px;">Enter phone number to receive simulated SMS</label>
+            <div class="phone-area">
+              <input id="phone" type="text" placeholder="+91 98765 43210" aria-label="Phone number">
+              <button class="btn" id="sendBtn">Start</button>
+            </div>
+            <div class="sms-box" id="smsBox" aria-live="polite"></div>
+          </div>
+        </div>
+
+        <div class="footer-note">Tip: This is a simulation — no real money or real messages are used.</div>
+      </div>
+
+      <!-- RIGHT: ATM Interface -->
+      <div class="right">
+        <div class="atm" role="application" aria-label="ATM Panel">
+          <div class="screen-wrap">
+            <div class="screen" id="atmScreen">WELCOME<br>INSERT CARD</div>
+
+            <div class="keypad-area">
+              <div class="side-buttons" id="leftButtons">
+                <button onclick="atmAction('balance')">💰 Balance</button>
+                <button onclick="atmAction('withdraw')">💸 Withdraw</button>
+                <button onclick="atmAction('deposit')">➕ Deposit</button>
+                <button onclick="atmAction('goal')">🎯 Goal</button>
+              </div>
+
+              <div class="middle">
+                <div class="card-slot" aria-hidden="true" title="Card slot"></div>
+                <div class="cash-slot" aria-hidden="true" title="Cash slot"></div>
+
+                <div id="keypadWrapper">
+                  <div class="keypad" id="keypad">
+                    <div class="key" onclick="pressKey('1')">1</div>
+                    <div class="key" onclick="pressKey('2')">2</div>
+                    <div class="key" onclick="pressKey('3')">3</div>
+                    <div class="key" onclick="pressKey('4')">4</div>
+                    <div class="key" onclick="pressKey('5')">5</div>
+                    <div class="key" onclick="pressKey('6')">6</div>
+                    <div class="key" onclick="pressKey('7')">7</div>
+                    <div class="key" onclick="pressKey('8')">8</div>
+                    <div class="key" onclick="pressKey('9')">9</div>
+                    <div class="key cancel" onclick="clearInput()">C</div>
+                    <div class="key" onclick="pressKey('0')">0</div>
+                    <div class="key enter" onclick="enterInput()">↵</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="side-buttons" id="rightButtons">
+                <button onclick="atmAction('convert')">💱 Convert</button>
+                <button onclick="atmAction('history')">📜 History</button>
+                <button onclick="atmAction('receipt')">🧾 Receipt</button>
+                <button onclick="atmAction('exit')">⏏ Exit</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;align-items:center;justify-content:space-between;">
+          <div class="small">Daily limit: <span id="dailyLimitDisplay">1000</span></div>
+          <div class="small">Balance: <strong id="balanceDisplay">$500.00</strong></div>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="side-buttons right-buttons">
-    <button onclick="convertCurrency()">💱 Convert</button>
-    <button onclick="showHistory()">📜 History</button>
-    <button onclick="downloadReceipt()">🧾 Receipt</button>
-    <button onclick="exitATM()">⏏ Exit</button>
-  </div>
-
-  <!-- Card & Cash Slots -->
-  <div class="card-slot"></div>
-  <div class="cash-slot"></div>
-
-  <!-- Keypad -->
-  <div class="keypad">
-    <div class="key" onclick="pressKey('1')">1</div>
-    <div class="key" onclick="pressKey('2')">2</div>
-    <div class="key" onclick="pressKey('3')">3</div>
-    <div class="key" onclick="pressKey('4')">4</div>
-    <div class="key" onclick="pressKey('5')">5</div>
-    <div class="key" onclick="pressKey('6')">6</div>
-    <div class="key" onclick="pressKey('7')">7</div>
-    <div class="key" onclick="pressKey('8')">8</div>
-    <div class="key" onclick="pressKey('9')">9</div>
-    <div class="key cancel" onclick="clearInput()">C</div>
-    <div class="key" onclick="pressKey('0')">0</div>
-    <div class="key enter" onclick="enterInput()">↵</div>
-  </div>
-</div>
 
 <script>
-  // ===== LOGIN PAGE =====
-  let cardNumber = 0;
-  let atmPin = "";
+/* ============================
+   Data & initial configuration
+   ============================ */
+let cardNumber = "";
+let atmPin = "";
+let balance = 500.00;
+let stage = "card"; // card -> pin -> menu -> amount -> confirmPin
+let entered = "";
+let pendingAction = null;
+let pendingAmount = 0;
+const dailyLimit = 1000;
+let amountWithdrawnToday = 0;
+let transactions = [];
+let savingsGoal = 0;
+const exchangeRates = { "INR": 83.0, "EUR": 0.92, "GBP": 0.79 };
 
-  function sendSMS() {
-    const phone = document.getElementById('phone').value;
-    if(phone.length < 10) {
-      alert("Please enter a valid phone number");
+/* Info pages content (two pages worth) */
+const infoPages = [
+`<h2>Welcome to the ATM Simulator</h2>
+<p>This interactive simulation is designed for beginners and learners who want to practice using an ATM in a safe environment. You will not use real money — everything here is for learning. The simulation mimics the common steps of using a real ATM: inserting a card, entering a PIN, checking balance, withdrawing or depositing money, and downloading receipts.</p>
+<p><strong>Why use this simulator?</strong> It helps new users understand the ATM layout, common menu choices, PIN security, and daily withdrawal limits. It’s a great way to build confidence before using a physical ATM.</p>
+<p><em>Note:</em> No real SMS or banking is performed — the SMS shown is simulated for learning.</p>`,
+
+`<h2>How ATMs Work & How to Use This Simulator</h2>
+<p><strong>How an ATM works (brief):</strong> An ATM reads a card, verifies your PIN, and then gives you options such as withdraw, deposit, check your balance, print (download) a receipt, or view transaction history. Real ATMs connect to banking networks — this simulator does not.</p>
+<p><strong>Step-by-step guide:</strong></p>
+<ol>
+  <li>Read these instructions and press <em>Next</em> until you reach the phone entry box.</li>
+  <li>Enter a phone number and press <strong>Start</strong> to receive a simulated SMS with a generated card number and PIN.</li>
+  <li>On the ATM panel on the right, press a side button or the screen to begin (the simulation will prompt you to insert the card).</li>
+  <li>Follow on-screen instructions: enter your PIN using the keypad, and select options such as Withdraw, Deposit, Balance, etc.</li>
+  <li>For withdrawals and deposits the simulation will ask for re-entering the PIN for security.</li>
+</ol>
+<p>The simulator includes a daily withdrawal limit, transaction history, currency conversion demo (for fixed exchange rates), savings goal progress, and the option to download a text receipt.</p>`
+];
+
+/* ================
+   UI Initialization
+   ================ */
+const infoPane = document.getElementById('infoPane');
+let currentInfo = 0;
+function renderInfo(){
+  infoPane.innerHTML = infoPages[currentInfo] + `<div style="margin-top:12px; color:var(--muted)">Page ${currentInfo+1} of ${infoPages.length}</div>`;
+}
+renderInfo();
+
+document.getElementById('nextInfo').addEventListener('click', ()=>{
+  if(currentInfo < infoPages.length - 1) currentInfo++;
+  renderInfo();
+});
+document.getElementById('prevInfo').addEventListener('click', ()=>{
+  if(currentInfo > 0) currentInfo--;
+  renderInfo();
+});
+
+/* display balance and daily limit */
+function updateUI(){
+  document.getElementById('balanceDisplay').textContent = `$${balance.toFixed(2)}`;
+  document.getElementById('dailyLimitDisplay').textContent = `${dailyLimit - amountWithdrawnToday}`;
+}
+
+/* ===== Simulated SMS & Start ===== */
+document.getElementById('sendBtn').addEventListener('click', sendSMS);
+document.getElementById('phone').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter') sendSMS();
+});
+
+function sendSMS(){
+  const phone = document.getElementById('phone').value.trim();
+  // simple validation (allow plus & digits)
+  if(!phone || phone.replace(/\D/g,'').length < 7){
+    alert('Please enter a valid phone number (7+ digits).');
+    return;
+  }
+  // generate card & PIN
+  cardNumber = Math.floor(1000000000000000 + Math.random() * 9000000000000000).toString();
+  atmPin = Math.floor(1000 + Math.random() * 9000).toString();
+  const smsBox = document.getElementById('smsBox');
+  smsBox.innerHTML = `<strong>SMS SENT ✅</strong><br>Card: <code>${cardNumber}</code><br>PIN: <code>${atmPin}</code><br><small style="color:var(--muted)">This is simulated — do not use these credentials anywhere.</small>`;
+  // show some animation/notice on ATM
+  setTimeout(() => {
+    // go to ATM simulated card insertion stage
+    stage = "card";
+    updateScreen("WELCOME<br>INSERT CARD");
+    smsBox.innerHTML += `<div style="margin-top:8px; color:var(--muted)">You can now use the ATM on the right. Press any action or press the screen to start.</div>`;
+  }, 700);
+}
+
+/* ================
+   ATM core actions
+   ================ */
+function updateScreen(text){
+  const screen = document.getElementById('atmScreen');
+  screen.innerHTML = text;
+}
+
+function pressKey(num){
+  entered += num;
+  if(stage === "pin" || stage === "confirmPin" || stage === "amount"){
+    updateScreen("Input: " + "*".repeat(entered.length));
+  }
+}
+
+function clearInput(){
+  entered = "";
+  updateScreen(stage === "pin" || stage === "confirmPin" ? "Enter PIN" : "Input cleared");
+}
+
+function enterInput(){
+  if(stage === "card"){
+    // simulate inserting card -> ask for PIN
+    stage = "pin";
+    entered = "";
+    updateScreen("Enter PIN");
+  } else if(stage === "pin"){
+    if(entered === atmPin){
+      stage = "menu";
+      updateScreen("APPROVED ✅<br>Select an Option (use side buttons)");
+    } else {
+      updateScreen("INVALID PIN ❌");
+      // brief delay then return to card
+      setTimeout(()=> updateScreen("WELCOME<br>INSERT CARD"), 1400);
+      stage = "card";
+    }
+    entered = "";
+  } else if(stage === "amount"){
+    // parse entered amount
+    const amt = parseInt(entered || "0", 10);
+    if(isNaN(amt) || amt <= 0){
+      updateScreen("Enter a valid amount");
+      entered = "";
       return;
     }
-    cardNumber = Math.floor(1000000000000000 + Math.random() * 9000000000000000);
-    atmPin = Math.floor(1000 + Math.random() * 9000).toString();
-    document.getElementById('message').innerHTML = 
-      `SMS SENT ✅<br>Card: ${cardNumber}<br>PIN: ${atmPin}<br>Redirecting to ATM...`;
-
-    // Delay to show SMS
-    setTimeout(() => {
-      document.getElementById('login-page').style.display = 'none';
-      document.getElementById('atm-page').style.display = 'block';
-      stage = "card"; // Start ATM flow
-      updateScreen("WELCOME<br>INSERT CARD");
-    }, 3000);
-  }
-
-  // ===== ATM SIMULATION =====
-  let balance = 500;
-  let stage = "card"; // card -> pin -> menu -> amount -> confirmPin
-  let entered = "";
-  let pendingAction = null;
-  let pendingAmount = 0;
-
-  const dailyLimit = 1000;
-  let amountWithdrawnToday = 0;
-  let transactions = [];
-  let savingsGoal = 0;
-
-  const exchangeRates = { "INR": 83.0, "EUR": 0.92, "GBP": 0.79 };
-
-  function updateScreen(text) {
-    document.getElementById("atm-screen").innerHTML = text;
-  }
-
-  function pressKey(num) {
-    entered += num;
-    if(stage === "pin" || stage === "confirmPin" || stage === "amount") {
-      updateScreen("Input: " + "*".repeat(entered.length));
-    }
-  }
-
-  function clearInput() {
+    pendingAmount = amt;
     entered = "";
-    updateScreen(stage === "pin" || stage === "confirmPin" ? "Enter PIN" : "Input cleared");
-  }
-
-  function enterInput() {
-    if(stage === "card") {
-      stage = "pin";
-      entered = "";
-      updateScreen("Enter PIN");
-    } else if(stage === "pin") {
-      if(entered === atmPin) {
-        stage = "menu";
-        updateScreen("APPROVED ✅<br>Select an Option");
-      } else {
-        updateScreen("INVALID PIN ❌");
-      }
-      entered = "";
-    } else if(stage === "amount") {
-      pendingAmount = parseInt(entered);
-      entered = "";
-      stage = "confirmPin";
-      updateScreen("Re-enter PIN for security 🔒");
-    } else if(stage === "confirmPin") {
-      if(entered === atmPin) {
-        if(pendingAction === "deposit") {
-          balance += pendingAmount;
-          transactions.unshift(`Deposit $${pendingAmount} | Balance: $${balance.toFixed(2)}`);
-          updateScreen(`Deposited $${pendingAmount}<br>Balance: $${balance.toFixed(2)}`);
-        } else if(pendingAction === "withdraw") {
-          if(balance >= pendingAmount && (amountWithdrawnToday + pendingAmount) <= dailyLimit) {
-            balance -= pendingAmount;
-            amountWithdrawnToday += pendingAmount;
-            transactions.unshift(`Withdraw $${pendingAmount} | Balance: $${balance.toFixed(2)}`);
-            updateScreen(`Withdrawn $${pendingAmount}<br>Balance: $${balance.toFixed(2)}`);
-          } else {
-            updateScreen("Limit Reached or Insufficient Funds ❌");
-          }
+    stage = "confirmPin";
+    updateScreen("Re-enter PIN to confirm transaction 🔒");
+  } else if(stage === "confirmPin"){
+    if(entered === atmPin){
+      // perform action
+      if(pendingAction === "deposit"){
+        balance += pendingAmount;
+        transactions.unshift(`Deposit $${pendingAmount.toFixed(2)} | Balance: $${balance.toFixed(2)}`);
+        updateScreen(`Deposited $${pendingAmount.toFixed(2)}<br>Balance: $${balance.toFixed(2)}`);
+      } else if(pendingAction === "withdraw"){
+        if(balance >= pendingAmount && (amountWithdrawnToday + pendingAmount) <= dailyLimit){
+          balance -= pendingAmount;
+          amountWithdrawnToday += pendingAmount;
+          transactions.unshift(`Withdraw $${pendingAmount.toFixed(2)} | Balance: $${balance.toFixed(2)}`);
+          updateScreen(`Withdrawn $${pendingAmount.toFixed(2)}<br>Balance: $${balance.toFixed(2)}`);
+        } else {
+          updateScreen("Limit Reached or Insufficient Funds ❌");
         }
-        stage = "menu";
-      } else {
-        updateScreen("PIN Mismatch ❌ Transaction Cancelled");
-        stage = "menu";
       }
-      entered = "";
-      pendingAction = null;
-      pendingAmount = 0;
+      // reset
+      stage = "menu";
+    } else {
+      updateScreen("PIN Mismatch ❌ Transaction Cancelled");
+      stage = "menu";
     }
+    entered = "";
+    pendingAction = null;
+    pendingAmount = 0;
+    updateUI();
+  }
+}
+
+/* central handler for side buttons */
+function atmAction(key){
+  // If currently in card stage, press should move to PIN entry
+  if(stage === "card"){
+    stage = "pin";
+    updateScreen("Enter PIN");
+    return;
   }
 
-  function showBalance() { if(stage==="menu"){updateScreen("Balance: $"+balance.toFixed(2));} }
-  function deposit() { if(stage==="menu"){stage="amount"; pendingAction="deposit"; updateScreen("Enter deposit amount:");} }
-  function withdraw() { if(stage==="menu"){stage="amount"; pendingAction="withdraw"; updateScreen("Enter withdraw amount:");} }
-  function setGoal() { if(stage==="menu"){savingsGoal=1000; let percent=(balance/savingsGoal)*100; updateScreen("Goal: $"+savingsGoal+"<br>Progress: "+percent.toFixed(1)+"%");} }
-  function convertCurrency() { if(stage==="menu"){let usd=100; let text="Currency Conversion (USD 100)<br>"; for(let cur in exchangeRates){text+=`${cur}: ${(usd*exchangeRates[cur]).toFixed(2)}<br>`;} updateScreen(text);} }
-  function showHistory() { if(stage==="menu"){let list=transactions.slice(0,5).join("<br>")||"No Transactions Yet"; updateScreen("Last Transactions:<br>"+list);} }
-  function downloadReceipt() { if(stage==="menu"){const content=`ATM Receipt\n-----------------------\nBalance: $${balance.toFixed(2)}\nDaily Limit Left: $${(dailyLimit-amountWithdrawnToday).toFixed(2)}\nTransactions:\n${transactions.join("\n")}\n-----------------------\nThank you for using our ATM!`; const blob=new Blob([content],{type:"text/plain"}); const link=document.createElement("a"); link.href=URL.createObjectURL(blob); link.download="ATM_Receipt.txt"; link.click(); updateScreen("Receipt Downloaded ✅");} }
-  function exitATM() { updateScreen("THANK YOU 🙏<br>Goodbye!"); balance=500; amountWithdrawnToday=0; transactions=[]; savingsGoal=0; stage="card"; updateScreen("WELCOME<br>INSERT CARD"); }
-</script>
+  // only allow actions from menu stage (after correct PIN)
+  if(stage !== "menu"){
+    updateScreen("Please login first (insert card and enter PIN)");
+    return;
+  }
 
+  switch(key){
+    case 'balance':
+      updateScreen(`Balance: $${balance.toFixed(2)}`);
+      break;
+    case 'withdraw':
+      stage = "amount";
+      pendingAction = "withdraw";
+      updateScreen("Enter withdraw amount:");
+      break;
+    case 'deposit':
+      stage = "amount";
+      pendingAction = "deposit";
+      updateScreen("Enter deposit amount:");
+      break;
+    case 'goal':
+      // demo savings goal
+      if(!savingsGoal) savingsGoal = 1000;
+      let percent = (balance/savingsGoal)*100;
+      updateScreen(`Goal: $${savingsGoal}<br>Progress: ${percent.toFixed(1)}%`);
+      break;
+    case 'convert':
+      let usd = 100;
+      let text = `Currency Conversion (USD ${usd})<br>`;
+      for(let cur in exchangeRates){
+        text += `${cur}: ${(usd * exchangeRates[cur]).toFixed(2)}<br>`;
+      }
+      updateScreen(text);
+      break;
+    case 'history':
+      let list = transactions.slice(0,8).join("<br>") || "No Transactions Yet";
+      updateScreen("Last Transactions:<br>" + list);
+      break;
+    case 'receipt':
+      // allow download of receipt text file
+      downloadReceiptFile();
+      break;
+    case 'exit':
+      // reset session to initial card stage
+      updateScreen("THANK YOU 🙏<br>Goodbye!");
+      setTimeout(() => {
+        balance = 500;
+        amountWithdrawnToday = 0;
+        transactions = [];
+        savingsGoal = 0;
+        stage = "card";
+        updateUI();
+        updateScreen("WELCOME<br>INSERT CARD");
+      }, 1200);
+      break;
+    default:
+      updateScreen("Unknown action");
+  }
+}
+
+/* receipt download routine */
+function downloadReceiptFile(){
+  const content = `ATM Receipt
+-----------------------
+Balance: $${balance.toFixed(2)}
+Daily Limit Left: $${(dailyLimit - amountWithdrawnToday).toFixed(2)}
+Transactions:
+${transactions.join("\n")}
+-----------------------
+Thank you for using our ATM!`;
+  const blob = new Blob([content], { type: "text/plain" });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `ATM_Receipt_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.txt`;
+  link.click();
+  updateScreen("Receipt Downloaded ✅");
+}
+
+/* init */
+updateUI();
+updateScreen("WELCOME<br>INSERT CARD");
+
+/* Extra UX: click screen to insert card and begin */
+document.getElementById('atmScreen').addEventListener('click', ()=>{
+  if(stage === "card") {
+    stage = "pin";
+    updateScreen("Enter PIN");
+  }
+});
+</script>
 </body>
 </html>
-
